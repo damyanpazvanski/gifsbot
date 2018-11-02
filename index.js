@@ -1,11 +1,16 @@
 const express = require('express');
 const http = require('https');
+const bodyParser = require('body-parser');
 
 const API_KEY = 'I4458ZBCK28A';
 
 const port = 8080;
 const app = express();
 const router = express.Router();
+
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 
 router.use(function (req, res, next) {
     res.setHeader('Content-Type', 'application/json; charset=UTF-8');
