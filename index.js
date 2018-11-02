@@ -7,64 +7,60 @@ const port = 8080;
 const app = express();
 const router = express.Router();
 
-router.use(function timeLog (req, res, next) {
+router.use(function (req, res, next) {
     res.setHeader('Content-Type', 'application/json; charset=UTF-8');
-    next()
+    next();
 });
 
-app.get('/', (req, res) => {
-    res.statusCode = 200;
-    res.end(JSON.stringify({message: 'Works fine.'}));
-});
+app.post('/', (mainRequest, mainResponse) => {
+    let text = '';
 
-app.get('/gif', function (req, res) {
-    if (req.query.q.length) {
-        response(req.query.q);
+    if (mainRequest.body.token !== 'Eyv4qQ28p0u4X4GQvAYNv0txxzsbbLytHZKEOKsoR6k=') {
+        text = `Forbidden`;
+        mainResponse.statusCode = 403;
+
+        return mainResponse.json({text});
     }
 
-    res.send(JSON.stringify({message: 'Sent gif!'}))
+    if (mainRequest.body.type === 'ADDED_TO_SPACE' && mainRequest.body.space.type === 'ROOM') {
+        text = `Thanks for adding me to ${mainRequest.body.space.displayName}`;
+    } else if (mainRequest.body.type === 'ADDED_TO_SPACE'
+        && mainRequest.body.space.type === 'DM') {
+        text = `Thanks for adding me to a DM, ${mainRequest.body.user.displayName}`;
+    } else if (mainRequest.body.type === 'MESSAGE') {
+        http.get("https://api.tenor.com/v1/anonid?key=" + API_KEY, (res) => {
+            let anonId;
+
+            res.on('data', (data) => { anonId = JSON.parse(data).anon_id });
+
+            res.on('end', () => {
+                http.get("https://api.tenor.com/v1/search?tag=" + query + "&key=" +
+                    API_KEY + "&limit=1&anon_id=" + anonId, (res) =>
+                {
+                    let data;
+
+                    res.on('data', (rawData) => { data = JSON.parse(rawData) });
+
+                    res.on('end', () => {
+                        if (data.results.length) {
+                            return mainResponse.json({
+                                cards: [{"sections": [{"widgets": [{"image": {
+                                                "imageUrl": data.results[0].media[0].gif.url
+                                            }}]}]}]});
+                        }
+
+                        text = `The are no results for "${mainRequest.body.message.text}"`;
+                    })
+                });
+            });
+        });
+    }
+
+    return mainResponse.json({text});
+});
+
+app.get('*', function(req, res){
+    res.send('Not Found!', 404);
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
-
-function response(query) {
-    http.get("https://api.tenor.com/v1/anonid?key=" + API_KEY, (res) => {
-        let anonId;
-
-        res.on('data', (data) => { anonId = JSON.parse(data).anon_id });
-
-        res.on('end', () => {
-            http.get("https://api.tenor.com/v1/search?tag=" + query + "&key=" +
-                API_KEY + "&limit=1&anon_id=" + anonId, (res) =>
-            {
-                let data;
-
-                res.on('data', (rawData) => { data = JSON.parse(rawData) });
-
-                res.on('end', () => {
-                    if (data.results.length) {
-                        let postData = JSON.stringify({
-                            cards: [{"sections": [{"widgets": [{"image": {
-                                "imageUrl": data.results[0].media[0].gif.url
-                            }}]}]}]});
-
-                        let options = {
-                            host: 'chat.googleapis.com',
-                            path: '/v1/spaces/AAAA5bxLNhk/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=J70KRSi_2j6hr1GosiBewEbGnBzUCQEMedGe_8bPpGg%3D',
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json; charset=UTF-8',
-                                'Content-Length': postData.length
-                            }
-                        };
-
-                        let req = http.request(options, function(res) {});
-
-                        req.write(postData);
-                        req.end();
-                    }
-                })
-            });
-        });
-    });
-}
