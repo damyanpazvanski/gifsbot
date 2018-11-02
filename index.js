@@ -9,8 +9,8 @@ const port = 8080;
 const app = express();
 const router = express.Router();
 
-app.use(bodyparser.urlencoded({extended: false}))
-    .use(bodyparser.json());
+app.use(bodyParser.urlencoded({extended: false}))
+    .use(bodyParser.json());
 
 router.use(function (req, res, next) {
     res.setHeader('Content-Type', 'application/json; charset=UTF-8');
