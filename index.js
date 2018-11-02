@@ -18,7 +18,7 @@ router.use(function (req, res, next) {
 });
 
 app.post('/', (mainRequest, mainResponse) => {
-    let text = '';
+    let text = 'Add parameter';
 
     if (mainRequest.body.token !== GOOGLE_TOKEN) {
         text = `Forbidden`;
@@ -51,15 +51,17 @@ app.post('/', (mainRequest, mainResponse) => {
                     res.on('data', (rawData) => { data = JSON.parse(rawData) });
 
                     res.on('end', () => {
-                        if (data.results.length) {
-                            response(mainRequest.body, true, data.results[0].media[0].gif.url);
-                            return mainResponse.json({
-                                cards: [{"sections": [{"widgets": [{"image": {
-                                                "imageUrl": data.results[0].media[0].gif.url
-                                            }}]}]}]});
-                        }
-
-                        response(mainRequest.body, false, '');
+                        return mainResponse.json(data.results);
+                        
+                        // if (data.results.length) {
+                        //     response(mainRequest.body, true, data.results[0].media[0].gif.url);
+                        //     return mainResponse.json({
+                        //         cards: [{"sections": [{"widgets": [{"image": {
+                        //                         "imageUrl": data.results[0].media[0].gif.url
+                        //                     }}]}]}]});
+                        // }
+                        //
+                        // response(mainRequest.body, false, '');
                     })
                 });
             });
@@ -75,25 +77,25 @@ app.get('*', function(req, res){
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
-function response(requestBody, isGif, gifUrl) {
-    let postData = '{"text": "The are no results for ' + mainRequest.body.message.text + '"}';
-
-    if (isGif) {
-        postData = JSON.stringify({cards: [{"sections": [{"widgets": [{"image": {"imageUrl": gifUrl}}]}]}]});
-    }
-
-    let options = {
-        host: 'chat.googleapis.com',
-        path: '/v1/' + requestBody.space.name + '/messages?token=' + GOOGLE_TOKEN,
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json; charset=UTF-8',
-            'Content-Length': postData.length
-        }
-    };
-
-    let req = http.request(options, function(res) {});
-
-    req.write(postData);
-    req.end();
-}
+// function response(requestBody, isGif, gifUrl) {
+//     let postData = '{"text": "The are no results for ' + mainRequest.body.message.text + '"}';
+//
+//     if (isGif) {
+//         postData = JSON.stringify({cards: [{"sections": [{"widgets": [{"image": {"imageUrl": gifUrl}}]}]}]});
+//     }
+//
+//     let options = {
+//         host: 'chat.googleapis.com',
+//         path: '/v1/' + requestBody.space.name + '/messages?token=' + GOOGLE_TOKEN,
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json; charset=UTF-8',
+//             'Content-Length': postData.length
+//         }
+//     };
+//
+//     let req = http.request(options, function(res) {});
+//
+//     req.write(postData);
+//     req.end();
+// }
