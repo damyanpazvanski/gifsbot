@@ -37,35 +37,44 @@ app.post('/', (mainRequest, mainResponse) => {
 
         return mainResponse.json({text});
     } else if (mainRequest.body.type === 'MESSAGE') {
-        http.get("https://api.tenor.com/v1/anonid?key=" + API_KEY, (res) => {
-            let anonId;
 
-            res.on('data', (data) => { anonId = JSON.parse(data).anon_id });
+        let message = mainRequest.body.message.text.substring(21).trim();
 
-            res.on('end', () => {
-                http.get("https://api.tenor.com/v1/search?tag=" + query + "&key=" +
-                    API_KEY + "&limit=1&anon_id=" + anonId, (res) =>
+        if (message == '') {
+            return mainResponse.json({text});
+        }
+
+        // http.get("https://api.tenor.com/v1/anonid?key=" + API_KEY, (res) => {
+        //     let anonId;
+
+            // res.on('data', (data) => { anonId = JSON.parse(data).anon_id });
+
+            // res.on('end', () => {
+                http.get("https://api.tenor.com/v1/search?tag=" + message + "&key=" +
+                    API_KEY + "&limit=10", (res) =>
                 {
                     let data;
 
                     res.on('data', (rawData) => { data = JSON.parse(rawData) });
 
                     res.on('end', () => {
-                        return mainResponse.json(data.results);
-                        
-                        // if (data.results.length) {
-                        //     response(mainRequest.body, true, data.results[0].media[0].gif.url);
-                        //     return mainResponse.json({
-                        //         cards: [{"sections": [{"widgets": [{"image": {
-                        //                         "imageUrl": data.results[0].media[0].gif.url
-                        //                     }}]}]}]});
-                        // }
-                        //
-                        // response(mainRequest.body, false, '');
+
+                        if (data.results.length) {
+                            let element = data.results[Math.floor(Math.random() * data.results.length)];
+
+                            return mainResponse.json({
+                                cards: [{"sections": [{"widgets": [{"image": {
+                                    "imageUrl": element.media[0].gif.url
+                                }}]}]}]});
+                        }
+
+                        text = 'The are no results for "' + message + '"';
+
+                        return mainResponse.json({text});
                     })
                 });
-            });
-        });
+            // });
+        // });
     } else {
         return mainResponse.json({text});
     }
@@ -75,27 +84,4 @@ app.get('*', function(req, res){
     res.send('Not Found!', 404);
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
-
-// function response(requestBody, isGif, gifUrl) {
-//     let postData = '{"text": "The are no results for ' + mainRequest.body.message.text + '"}';
-//
-//     if (isGif) {
-//         postData = JSON.stringify({cards: [{"sections": [{"widgets": [{"image": {"imageUrl": gifUrl}}]}]}]});
-//     }
-//
-//     let options = {
-//         host: 'chat.googleapis.com',
-//         path: '/v1/' + requestBody.space.name + '/messages?token=' + GOOGLE_TOKEN,
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json; charset=UTF-8',
-//             'Content-Length': postData.length
-//         }
-//     };
-//
-//     let req = http.request(options, function(res) {});
-//
-//     req.write(postData);
-//     req.end();
-// }
+app.listen(port, () => {});
