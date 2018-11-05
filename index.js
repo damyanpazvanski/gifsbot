@@ -50,7 +50,7 @@ app.post('/', (mainRequest, mainResponse) => {
             // res.on('data', (data) => { anonId = JSON.parse(data).anon_id });
 
             // res.on('end', () => {
-                http.get("https://api.tenor.com/v1/search?tag=" + message + "&key=" +
+                http.get("https://api.tenor.com/v1/search?q=" + message + "&key=" +
                     API_KEY + "&limit=10", (res) =>
                 {
                     let data;
