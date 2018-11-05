@@ -9,8 +9,8 @@ const port = 8080;
 const app = express();
 const router = express.Router();
 
-app.use(bodyParser.urlencoded({extended: false}))
-    .use(bodyParser.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
 
 router.use(function (req, res, next) {
     res.setHeader('Content-Type', 'application/json; charset=UTF-8');
@@ -51,14 +51,13 @@ app.post('/', (mainRequest, mainResponse) => {
 
             // res.on('end', () => {
                 http.get("https://api.tenor.com/v1/search?q=" + message + "&key=" +
-                    API_KEY + "&limit=10", (res) =>
+                    API_KEY + "&media_filter=minimal&limit=8", (res) =>
                 {
                     let data;
 
                     res.on('data', (rawData) => { data = JSON.parse(rawData) });
 
                     res.on('end', () => {
-
                         if (data.results.length) {
                             let element = data.results[Math.floor(Math.random() * data.results.length)];
 
@@ -76,6 +75,8 @@ app.post('/', (mainRequest, mainResponse) => {
             // });
         // });
     } else {
+        text = "You are not using me correctly!";
+
         return mainResponse.json({text});
     }
 });
